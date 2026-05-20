@@ -1,0 +1,23 @@
+{
+  "name": "bank-churn-minimal-browser-ml",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "description": "Static browser deployment for a minimally sized bank churn ANN model.",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run copy:ort && vite build",
+    "preview": "vite preview",
+    "copy:ort": "node ./scripts/copy-ort-wasm.cjs",
+    "check:artifacts": "node ./scripts/check-artifacts.cjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "onnxruntime-web": "latest"
+  },
+  "devDependencies": {}
+}
