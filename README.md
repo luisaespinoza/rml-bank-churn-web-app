@@ -67,7 +67,7 @@ public/artifacts/
 From the training repository:
 
 ```bash
-python export_ann_to_onnx_tiny_locked.py
+python export_ann_to_onnx.py
 ```
 
 Expected result:
