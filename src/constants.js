@@ -2,9 +2,13 @@ export const APP_TITLE = "Bank Churn Minimal Deployable ML";
 
 export const PROJECT_SUMMARY =
   "  A browser-based demo that estimates bank customer churn risk from a customer"+
-  "profile. Enter account and demographic attributes, or choose an example profile,"+
-  " to see how a lightweight predictive model can support retention-focused decision"+
-  "making.";
+  " profile. Enter account and demographic attributes, or choose an example profile,"+
+  " to see how a lightweight predictive model can support retention-focused decision-"+
+  "making." ;
+export const PROJECT_SUMMARY2 = "In a production setting, a tool like this could serve as an early-warning system for"+
+    " customer retention teams. Rather than making automated decisions, the score could help flag"+
+    " accounts for human review, prioritize outreach, and guide retention campaigns toward customers who"+
+    " may need additional attention.";
 
 // Files in public/ are served from the site root by Vite.
 // Source: public/artifacts/deployment/best_model.onnx

@@ -4,7 +4,7 @@ import {
   EXAMPLE_INPUTS_PATH,
   FALLBACK_EXAMPLES,
   MODEL_FACTS,
-  PROJECT_SUMMARY,
+  PROJECT_SUMMARY, PROJECT_SUMMARY2,
   REQUIRED_DEPLOYMENT_FILES,
   RESPONSIBLE_USE_COPY,
   PROJECT_LINKS
@@ -193,6 +193,7 @@ export function createApp(root) {
           <p class="eyebrow">Lightweight browser deployment</p>
           <h1>${APP_TITLE}</h1>
           <p class="summary">${PROJECT_SUMMARY}</p>
+          <p class="summary">${PROJECT_SUMMARY2}</p>
           <div class="fact-grid">
             ${MODEL_FACTS.map((fact) => `<span>${escapeHtml(fact)}</span>`).join("")}
           </div>
@@ -377,6 +378,7 @@ function renderProjectLinks() {
     <div class="project-links">
       <h3>Project links</h3>
       <div class="project-link-grid">
+        <p>This is part of a minimal deployable ML portfolio: practical predictive models that can run without backend inference, API keys, or cloud-hosted AI services.</p>
         <a href="${PROJECT_LINKS.webRepo}" target="_blank" rel="noreferrer" class="project-link">
           <span class="project-link-icon" aria-hidden="true">${githubIcon()}</span>
           <span>
