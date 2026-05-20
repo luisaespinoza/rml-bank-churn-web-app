@@ -1,7 +1,10 @@
 export const APP_TITLE = "Bank Churn Minimal Deployable ML";
 
 export const PROJECT_SUMMARY =
-  "A compact bank churn model showing how useful machine learning can run locally in a static browser app without a backend, API keys, or paid cloud inference.";
+  "  A browser-based demo that estimates bank customer churn risk from a customer"+
+  "profile. Enter account and demographic attributes, or choose an example profile,"+
+  " to see how a lightweight predictive model can support retention-focused decision"+
+  "making.";
 
 // Files in public/ are served from the site root by Vite.
 // Source: public/artifacts/deployment/best_model.onnx
