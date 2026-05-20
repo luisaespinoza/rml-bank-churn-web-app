@@ -1,0 +1,104 @@
+[
+  {
+    "id": "reference-baseline",
+    "label": "Reference baseline",
+    "description": "Middle-aged, active customer with two products; useful as a neutral sanity check.",
+    "inputs": {
+      "CreditScore": 650,
+      "Geography": "France",
+      "Gender": "Female",
+      "Age": 40,
+      "Tenure": 5,
+      "Balance": 60000,
+      "NumOfProducts": 2,
+      "HasCrCard": 1,
+      "IsActiveMember": 1,
+      "EstimatedSalary": 100000
+    }
+  },
+  {
+    "id": "low-risk-active-france",
+    "label": "Lower-risk active profile",
+    "description": "Younger active customer with two products and low balance.",
+    "inputs": {
+      "CreditScore": 720,
+      "Geography": "France",
+      "Gender": "Male",
+      "Age": 32,
+      "Tenure": 6,
+      "Balance": 0,
+      "NumOfProducts": 2,
+      "HasCrCard": 1,
+      "IsActiveMember": 1,
+      "EstimatedSalary": 85000
+    }
+  },
+  {
+    "id": "moderate-inactive-france",
+    "label": "Moderate inactive profile",
+    "description": "A more ambiguous profile intended to land between the obvious low/high cases when preprocessing is correct.",
+    "inputs": {
+      "CreditScore": 640,
+      "Geography": "France",
+      "Gender": "Female",
+      "Age": 44,
+      "Tenure": 4,
+      "Balance": 90000,
+      "NumOfProducts": 1,
+      "HasCrCard": 1,
+      "IsActiveMember": 0,
+      "EstimatedSalary": 98000
+    }
+  },
+  {
+    "id": "moderate-germany-active",
+    "label": "Moderate Germany active profile",
+    "description": "Germany and balance push risk upward; active membership and two products push it down.",
+    "inputs": {
+      "CreditScore": 680,
+      "Geography": "Germany",
+      "Gender": "Male",
+      "Age": 42,
+      "Tenure": 5,
+      "Balance": 105000,
+      "NumOfProducts": 2,
+      "HasCrCard": 1,
+      "IsActiveMember": 1,
+      "EstimatedSalary": 110000
+    }
+  },
+  {
+    "id": "higher-risk-older-inactive-germany",
+    "label": "Higher-risk older inactive profile",
+    "description": "Older inactive Germany profile that should usually produce a higher churn estimate.",
+    "inputs": {
+      "CreditScore": 610,
+      "Geography": "Germany",
+      "Gender": "Female",
+      "Age": 58,
+      "Tenure": 2,
+      "Balance": 126000,
+      "NumOfProducts": 1,
+      "HasCrCard": 1,
+      "IsActiveMember": 0,
+      "EstimatedSalary": 112000
+    }
+  },
+  {
+    "id": "edge-young-spain-newer",
+    "label": "Younger Spain newer customer",
+    "description": "Newer customer with moderate credit score and one product.",
+    "inputs": {
+      "CreditScore": 590,
+      "Geography": "Spain",
+      "Gender": "Male",
+      "Age": 27,
+      "Tenure": 1,
+      "Balance": 35000,
+      "NumOfProducts": 1,
+      "HasCrCard": 0,
+      "IsActiveMember": 1,
+      "EstimatedSalary": 42000
+    }
+  }
+]

@@ -1,5 +1,7 @@
 export function formatProbability(probability) {
   if (!Number.isFinite(probability)) return "Unavailable";
+  if (probability > 0 && probability < 0.001) return "<0.1%";
+  if (probability < 1 && probability > 0.999) return ">99.9%";
   return `${(probability * 100).toFixed(1)}%`;
 }
 

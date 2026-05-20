@@ -1,6 +1,8 @@
 import {
   APP_TITLE,
   DEPLOYMENT_MANIFEST_PATH,
+  EXAMPLE_INPUTS_PATH,
+  FALLBACK_EXAMPLES,
   MODEL_FACTS,
   PROJECT_SUMMARY,
   REQUIRED_DEPLOYMENT_FILES,
@@ -8,7 +10,7 @@ import {
 } from "./constants.js";
 import { INPUT_FIELDS, coerceFormValue, getInitialInputs } from "./inputs.js";
 import { interpretChurnRisk } from "./interpretation.js";
-import { getModelRuntimeInfo, loadModel, predictChurnProbability } from "./model.js";
+import { getModelRuntimeInfo, loadModel, predictChurn } from "./model.js";
 import { describePreprocessing, loadPreprocessingSchema, preprocessInput } from "./preprocessing.js";
 
 export function createApp(root) {
@@ -21,6 +23,8 @@ export function createApp(root) {
     running: false,
     error: "",
     setupWarnings: [],
+    examples: FALLBACK_EXAMPLES,
+    selectedExampleId: "",
     result: null,
     debug: null
   };
@@ -33,6 +37,11 @@ export function createApp(root) {
       state.manifest = await loadDeploymentManifest().catch((error) => {
         warnings.push(`Manifest not loaded: ${error.message || String(error)}`);
         return null;
+      });
+
+      state.examples = await loadExamples().catch((error) => {
+        warnings.push(`Example inputs not loaded: ${error.message || String(error)}`);
+        return FALLBACK_EXAMPLES;
       });
 
       state.schema = await loadPreprocessingSchema();
@@ -54,6 +63,33 @@ export function createApp(root) {
     return response.json();
   }
 
+  async function loadExamples() {
+    const response = await fetch(EXAMPLE_INPUTS_PATH, { cache: "no-store" });
+    if (!response.ok) throw new Error(`${EXAMPLE_INPUTS_PATH} returned HTTP ${response.status}`);
+    const examples = await response.json();
+    if (!Array.isArray(examples)) {
+      throw new Error(`${EXAMPLE_INPUTS_PATH} must contain a JSON array.`);
+    }
+    return examples
+      .filter((example) => example && typeof example === "object" && example.inputs)
+      .map((example, index) => ({
+        id: String(example.id || `example-${index + 1}`),
+        label: String(example.label || example.name || `Example ${index + 1}`),
+        description: String(example.description || "Load this sample customer profile."),
+        inputs: normalizeExampleInputs(example.inputs)
+      }));
+  }
+
+  function normalizeExampleInputs(inputs) {
+    const normalized = { ...state.inputs };
+    for (const field of INPUT_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(inputs, field.name)) {
+        normalized[field.name] = coerceFormValue(field, inputs[field.name]);
+      }
+    }
+    return normalized;
+  }
+
   function readInputsFromForm(form) {
     const formData = new FormData(form);
     const nextInputs = { ...state.inputs };
@@ -67,7 +103,28 @@ export function createApp(root) {
   function updateInput(name, value) {
     const field = INPUT_FIELDS.find((item) => item.name === name);
     state.inputs[name] = coerceFormValue(field, value);
+
+    // Do not call render() here. Re-rendering replaces the whole form DOM on
+    // every keystroke, which steals focus from number inputs and can scroll the
+    // page back to the top. The submit handler reads the live form values, so
+    // keeping state in sync is enough during typing.
+    state.selectedExampleId = "";
     state.result = null;
+    state.error = "";
+
+    root.querySelectorAll("[data-example-id].selected").forEach((button) => {
+      button.classList.remove("selected");
+    });
+  }
+
+  function applyExample(exampleId) {
+    const example = state.examples.find((item) => item.id === exampleId);
+    if (!example) return;
+    state.inputs = { ...example.inputs };
+    state.selectedExampleId = example.id;
+    state.result = null;
+    state.error = "";
+    updateDebug();
     render();
   }
 
@@ -84,9 +141,13 @@ export function createApp(root) {
       if (!state.session) state.session = await loadModel();
 
       const vector = preprocessInput(state.inputs, state.schema);
-      const probability = await predictChurnProbability(vector, state.session);
-      state.result = interpretChurnRisk(probability);
-      updateDebug(vector);
+      const prediction = await predictChurn(vector, state.session);
+      state.result = {
+        ...interpretChurnRisk(prediction.probability),
+        rawProbability: prediction.probability,
+        logit: prediction.logit
+      };
+      updateDebug(vector, prediction);
     } catch (error) {
       state.error = error.message || String(error);
       updateDebug();
@@ -98,13 +159,14 @@ export function createApp(root) {
 
   function resetInputs() {
     state.inputs = getInitialInputs();
+    state.selectedExampleId = "";
     state.result = null;
     state.error = "";
     updateDebug();
     render();
   }
 
-  function updateDebug(vector = null) {
+  function updateDebug(vector = null, prediction = null) {
     const preprocessing = state.schema ? describePreprocessing(state.schema) : null;
     const runtime = getModelRuntimeInfo(state.session);
     state.debug = {
@@ -115,7 +177,11 @@ export function createApp(root) {
       vectorLength: vector?.length || preprocessing?.inputLength || null,
       numericColumns: preprocessing?.numericColumns || [],
       categoricalColumns: preprocessing?.categoricalColumns || [],
-      categories: preprocessing?.categories || null
+      categories: preprocessing?.categories || null,
+      scalerComplete: preprocessing?.scalerStatus?.complete ?? null,
+      scalerDetails: preprocessing?.scalerStatus?.details || [],
+      lastLogit: prediction?.logit ?? null,
+      lastProbability: prediction?.probability ?? null
     };
   }
 
@@ -131,11 +197,16 @@ export function createApp(root) {
           </div>
         </section>
 
+        <section class="card estimate-card">
+          ${renderStatus()}
+          ${renderResult()}
+        </section>
+
         <section class="layout-grid">
           <form class="card input-card" id="prediction-form">
             <div class="section-heading">
               <h2>Customer profile</h2>
-              <p>Enter feature values from the bank churn dataset schema.</p>
+              <p>Enter feature values from the bank churn dataset schema, or load a sample profile.</p>
             </div>
             <div class="field-grid">
               ${INPUT_FIELDS.map(renderField).join("")}
@@ -149,16 +220,12 @@ export function createApp(root) {
           </form>
 
           <aside class="card result-card">
-            ${renderStatus()}
-            ${renderResult()}
+            ${renderExamples()}
             ${renderModelDetails()}
             ${renderDebug()}
           </aside>
         </section>
 
-        <section class="card artifact-card">
-          ${renderArtifactChecklist()}
-        </section>
 
         <section class="card caveat-card">
           <h2>Responsible use</h2>
@@ -169,11 +236,39 @@ export function createApp(root) {
 
     root.querySelector("#prediction-form")?.addEventListener("submit", runPrediction);
     root.querySelector("#reset-button")?.addEventListener("click", resetInputs);
+    root.querySelectorAll("[data-example-id]").forEach((button) => {
+      button.addEventListener("click", () => applyExample(button.dataset.exampleId));
+    });
     for (const field of INPUT_FIELDS) {
       const element = root.querySelector(`[name="${field.name}"]`);
       element?.addEventListener("input", (event) => updateInput(field.name, event.target.value));
       element?.addEventListener("change", (event) => updateInput(field.name, event.target.value));
     }
+  }
+
+  function renderExamples() {
+    if (!state.examples.length) return "";
+
+    return `
+      <div class="example-panel">
+        <div>
+          <h3>Quick examples</h3>
+          <p>Fill the form with a representative profile, then run the estimate.</p>
+        </div>
+        <div class="example-grid">
+          ${state.examples.map((example) => `
+            <button
+              type="button"
+              class="example-button ${state.selectedExampleId === example.id ? "selected" : ""}"
+              data-example-id="${escapeHtml(example.id)}"
+            >
+              <strong>${escapeHtml(example.label)}</strong>
+              <span>${escapeHtml(example.description)}</span>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `;
   }
 
   function renderField(field) {
@@ -224,24 +319,6 @@ export function createApp(root) {
     return `<div class="status ready">Ready: model and preprocessing schema loaded.${warnings}</div>`;
   }
 
-  function renderArtifactChecklist() {
-    return `
-      <div class="artifact-checklist">
-        <h2>Expected artifact layout</h2>
-        <p class="small-note">Canonical wasm path: <code>public/artifacts/ort-wasm/</code>. Temporary fallback also tried: <code>public/ort-wasm/</code>.</p>
-        <ul>
-          ${REQUIRED_DEPLOYMENT_FILES.map((item) => `
-            <li>
-              <span>${item.required ? "Required" : "Optional"}</span>
-              <code>${item.path}</code>
-              <small>${item.source}</small>
-            </li>
-          `).join("")}
-        </ul>
-      </div>
-    `;
-  }
-
   function renderResult() {
     if (!state.result) {
       return `
@@ -259,6 +336,7 @@ export function createApp(root) {
         <h2>${state.result.label}</h2>
         <p>${state.result.summary}</p>
         <small>${state.result.caveat}</small>
+        <small class="technical-note">Raw probability: ${formatDebugNumber(state.result.rawProbability)}; logit: ${formatDebugNumber(state.result.logit)}</small>
       </div>
     `;
   }
@@ -287,11 +365,16 @@ export function createApp(root) {
   function renderDebug() {
     if (!state.debug) return "";
     return `
-      <details class="debug-panel" open>
+      <details class="debug-panel">
         <summary>Runtime diagnostics</summary>
         <pre>${escapeHtml(JSON.stringify(state.debug, null, 2))}</pre>
       </details>
     `;
+  }
+
+  function formatDebugNumber(value) {
+    if (!Number.isFinite(value)) return "not available";
+    return Number(value).toPrecision(6);
   }
 
   function escapeHtml(value) {

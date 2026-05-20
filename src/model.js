@@ -66,7 +66,7 @@ export function clearModelCache() {
   activeWasmPath = null;
 }
 
-export async function predictChurnProbability(preprocessedVector, session) {
+export async function predictChurn(preprocessedVector, session) {
   const activeSession = session || (await loadModel());
   const inputName = activeSession.inputNames[0];
   const outputName = activeSession.outputNames[0];
@@ -88,7 +88,13 @@ export async function predictChurnProbability(preprocessedVector, session) {
     throw new Error("Model inference did not return a finite logit.");
   }
 
-  return sigmoid(rawOutput);
+  const probability = sigmoid(rawOutput);
+  return { logit: rawOutput, probability };
+}
+
+export async function predictChurnProbability(preprocessedVector, session) {
+  const prediction = await predictChurn(preprocessedVector, session);
+  return prediction.probability;
 }
 
 export function sigmoid(logit) {

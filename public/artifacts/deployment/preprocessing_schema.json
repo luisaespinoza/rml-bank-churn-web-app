@@ -15,19 +15,19 @@
     "Gender"
   ],
   "feature_names_out": [
-    "num__CreditScore",
-    "num__Age",
-    "num__Tenure",
-    "num__Balance",
-    "num__NumOfProducts",
-    "num__HasCrCard",
-    "num__IsActiveMember",
-    "num__EstimatedSalary",
-    "cat__Geography_France",
-    "cat__Geography_Germany",
-    "cat__Geography_Spain",
-    "cat__Gender_Female",
-    "cat__Gender_Male"
+    "CreditScore",
+    "Age",
+    "Tenure",
+    "Balance",
+    "NumOfProducts",
+    "HasCrCard",
+    "IsActiveMember",
+    "EstimatedSalary",
+    "Geography_France",
+    "Geography_Germany",
+    "Geography_Spain",
+    "Gender_Female",
+    "Gender_Male"
   ],
   "numeric_standardization": {
     "mean": [
@@ -65,5 +65,186 @@
       ]
     }
   },
-  "notes": "Apply numeric standardization first, then append one-hot categorical features in the listed category order. Unknown categories map to all zeros for that column group."
+  "notes": "Apply numeric standardization first, then append one-hot categorical features in the listed category order. Unknown categories map to all zeros for that column group.",
+  "target_column": "Exited",
+  "identifier_columns_dropped": [
+    "RowNumber",
+    "CustomerId",
+    "Surname"
+  ],
+  "feature_columns": [
+    "CreditScore",
+    "Geography",
+    "Gender",
+    "Age",
+    "Tenure",
+    "Balance",
+    "NumOfProducts",
+    "HasCrCard",
+    "IsActiveMember",
+    "EstimatedSalary"
+  ],
+  "numeric_features": [
+    "CreditScore",
+    "Age",
+    "Tenure",
+    "Balance",
+    "NumOfProducts",
+    "HasCrCard",
+    "IsActiveMember",
+    "EstimatedSalary"
+  ],
+  "categorical_features": [
+    "Geography",
+    "Gender"
+  ],
+  "categories": {
+    "Geography": [
+      "France",
+      "Germany",
+      "Spain"
+    ],
+    "Gender": [
+      "Female",
+      "Male"
+    ]
+  },
+  "categorical_categories": {
+    "Geography": [
+      "France",
+      "Germany",
+      "Spain"
+    ],
+    "Gender": [
+      "Female",
+      "Male"
+    ]
+  },
+  "numeric_means": {
+    "CreditScore": 651.107,
+    "Age": 38.845142857142854,
+    "Tenure": 5.062571428571428,
+    "Balance": 76569.79188714286,
+    "NumOfProducts": 1.5292857142857144,
+    "HasCrCard": 0.7064285714285714,
+    "IsActiveMember": 0.5115714285714286,
+    "EstimatedSalary": 100164.95501857143
+  },
+  "numeric_scales": {
+    "CreditScore": 96.61784873333261,
+    "Age": 10.408706073400717,
+    "Tenure": 2.8937517346933577,
+    "Balance": 62408.19656908974,
+    "NumOfProducts": 0.5821139344261235,
+    "HasCrCard": 0.4553978973359003,
+    "IsActiveMember": 0.49986608410735006,
+    "EstimatedSalary": 57530.49114934276
+  },
+  "standard_scaler": {
+    "columns": [
+      "CreditScore",
+      "Age",
+      "Tenure",
+      "Balance",
+      "NumOfProducts",
+      "HasCrCard",
+      "IsActiveMember",
+      "EstimatedSalary"
+    ],
+    "mean": [
+      651.107,
+      38.845142857142854,
+      5.062571428571428,
+      76569.79188714286,
+      1.5292857142857144,
+      0.7064285714285714,
+      0.5115714285714286,
+      100164.95501857143
+    ],
+    "scale": [
+      96.61784873333261,
+      10.408706073400717,
+      2.8937517346933577,
+      62408.19656908974,
+      0.5821139344261235,
+      0.4553978973359003,
+      0.49986608410735006,
+      57530.49114934276
+    ],
+    "mean_": [
+      651.107,
+      38.845142857142854,
+      5.062571428571428,
+      76569.79188714286,
+      1.5292857142857144,
+      0.7064285714285714,
+      0.5115714285714286,
+      100164.95501857143
+    ],
+    "scale_": [
+      96.61784873333261,
+      10.408706073400717,
+      2.8937517346933577,
+      62408.19656908974,
+      0.5821139344261235,
+      0.4553978973359003,
+      0.49986608410735006,
+      57530.49114934276
+    ]
+  },
+  "one_hot_encoder": {
+    "columns": [
+      "Geography",
+      "Gender"
+    ],
+    "categories": [
+      [
+        "France",
+        "Germany",
+        "Spain"
+      ],
+      [
+        "Female",
+        "Male"
+      ]
+    ],
+    "categories_": [
+      [
+        "France",
+        "Germany",
+        "Spain"
+      ],
+      [
+        "Female",
+        "Male"
+      ]
+    ],
+    "handle_unknown": "ignore"
+  },
+  "transformed_feature_names": [
+    "CreditScore",
+    "Age",
+    "Tenure",
+    "Balance",
+    "NumOfProducts",
+    "HasCrCard",
+    "IsActiveMember",
+    "EstimatedSalary",
+    "Geography_France",
+    "Geography_Germany",
+    "Geography_Spain",
+    "Gender_Female",
+    "Gender_Male"
+  ],
+  "input_dim": 13,
+  "transformed_feature_count": 13,
+  "split": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15,
+    "stratified_by": "Exited",
+    "random_state": 314
+  },
+  "preprocessing_note": "Numeric columns use StandardScaler fit on the train split. Categorical columns use OneHotEncoder(handle_unknown='ignore'). Feature vector order is numeric columns first, then one-hot categorical columns.",
+  "schema_repaired_by": "repair_preprocessing_schema_from_csv.py"
 }

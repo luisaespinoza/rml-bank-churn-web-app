@@ -128,31 +128,44 @@ function firstNumber(values) {
   return values.find((value) => Number.isInteger(value) && value > 0) || null;
 }
 
-function standardize(column, value, schema) {
-  const mean = getStat(schema, column, [
-    "mean",
-    "means",
-    "mean_",
-    "numeric_means",
-    "center",
-    "centers"
-  ], 0);
-  const scale = getStat(schema, column, [
-    "scale",
-    "scales",
-    "scale_",
-    "numeric_scales",
-    "std",
-    "stds",
-    "standard_deviation",
-    "standard_deviations"
-  ], 1);
+const MEAN_KEYS = [
+  "mean",
+  "means",
+  "mean_",
+  "numeric_means",
+  "center",
+  "centers"
+];
 
-  const safeScale = Number(scale) === 0 ? 1 : Number(scale);
+const SCALE_KEYS = [
+  "scale",
+  "scales",
+  "scale_",
+  "numeric_scales",
+  "std",
+  "stds",
+  "standard_deviation",
+  "standard_deviations"
+];
+
+function standardize(column, value, schema) {
+  const mean = getStat(schema, column, MEAN_KEYS);
+  const scale = getStat(schema, column, SCALE_KEYS);
+
+  if (mean === undefined || scale === undefined) {
+    throw new Error(
+      `Missing StandardScaler metadata for ${column}. ` +
+        "Browser inference must use the same train-fitted numeric means/scales as Python. " +
+        "Re-export preprocessing_schema.json with numeric means and scales before trusting predictions."
+    );
+  }
+
+  const numericScale = Number(scale);
+  const safeScale = numericScale === 0 ? 1 : numericScale;
   return (Number(value) - Number(mean)) / safeScale;
 }
 
-function getStat(schema, column, keys, fallback) {
+function getStat(schema, column, keys) {
   const containers = [
     schema,
     schema?.standard_scaler,
@@ -171,7 +184,7 @@ function getStat(schema, column, keys, fallback) {
     }
   }
 
-  return fallback;
+  return undefined;
 }
 
 function readNamedOrIndexedStat(source, column, schema) {
@@ -227,6 +240,20 @@ function readCategories(container, column, index) {
   return null;
 }
 
+export function getScalerStatus(schema) {
+  const numericColumns = schema ? getNumericColumns(schema) : [];
+  const details = numericColumns.map((column) => ({
+    column,
+    hasMean: getStat(schema, column, MEAN_KEYS) !== undefined,
+    hasScale: getStat(schema, column, SCALE_KEYS) !== undefined
+  }));
+
+  return {
+    complete: details.every((item) => item.hasMean && item.hasScale),
+    details
+  };
+}
+
 export function describePreprocessing(schema) {
   const numericColumns = schema ? getNumericColumns(schema) : [];
   const categoricalColumns = schema ? getCategoricalColumns(schema) : [];
@@ -234,6 +261,7 @@ export function describePreprocessing(schema) {
     numericColumns,
     categoricalColumns,
     categories: Object.fromEntries(categoricalColumns.map((column) => [column, getCategories(schema, column)])),
+    scalerStatus: schema ? getScalerStatus(schema) : null,
     inputLength: schema ? getExpectedInputLength(schema) : null
   };
 }
