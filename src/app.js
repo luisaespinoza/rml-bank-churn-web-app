@@ -6,7 +6,8 @@ import {
   MODEL_FACTS,
   PROJECT_SUMMARY,
   REQUIRED_DEPLOYMENT_FILES,
-  RESPONSIBLE_USE_COPY
+  RESPONSIBLE_USE_COPY,
+  PROJECT_LINKS
 } from "./constants.js";
 import { INPUT_FIELDS, coerceFormValue, getInitialInputs } from "./inputs.js";
 import { interpretChurnRisk } from "./interpretation.js";
@@ -230,7 +231,9 @@ export function createApp(root) {
         <section class="card caveat-card">
           <h2>Responsible use</h2>
           <p>${RESPONSIBLE_USE_COPY}</p>
+          ${renderProjectLinks()}
         </section>
+
       </main>
     `;
 
@@ -341,27 +344,82 @@ export function createApp(root) {
     `;
   }
 
-  function renderModelDetails() {
-    const preprocessing = state.schema ? describePreprocessing(state.schema) : null;
-    const manifestModel = state.manifest?.model_name || state.manifest?.selected_model || state.manifest?.detected_architecture || "best_model.onnx";
+function renderModelDetails() {
+  const preprocessing = state.schema ? describePreprocessing(state.schema) : null;
+  const manifestModel =
+    state.manifest?.model_name ||
+    state.manifest?.selected_model ||
+    "Tiny ANN / best_model.onnx";
 
-    return `
-      <div class="model-details">
-        <h2>Deployment details</h2>
-        <dl>
-          <dt>Model artifact</dt>
-          <dd>${escapeHtml(manifestModel)}</dd>
-          <dt>Numeric features</dt>
-          <dd>${escapeHtml(preprocessing?.numericColumns?.join(", ") || "Waiting for schema")}</dd>
-          <dt>Categorical features</dt>
-          <dd>${escapeHtml(preprocessing?.categoricalColumns?.join(", ") || "Waiting for schema")}</dd>
-          <dt>Input vector length</dt>
-          <dd>${escapeHtml(preprocessing?.inputLength || "Derived from schema/model")}</dd>
-        </dl>
+  return `
+    <details class="model-details collapsible-panel">
+      <summary>Deployment details</summary>
+      <dl>
+        <dt>Model artifact</dt>
+        <dd>${manifestModel}</dd>
+
+        <dt>Numeric features</dt>
+        <dd>${preprocessing?.numericColumns?.join(", ") || "Waiting for schema"}</dd>
+
+        <dt>Categorical features</dt>
+        <dd>${preprocessing?.categoricalColumns?.join(", ") || "Waiting for schema"}</dd>
+
+        <dt>Input vector length</dt>
+        <dd>${preprocessing?.inputLength || "Derived from schema/model"}</dd>
+      </dl>
+    </details>
+  `;
+}
+function renderProjectLinks() {
+  // const emailHref = `mailto:${PROJECT_LINKS.contactEmail}`;
+
+  return `
+    <div class="project-links">
+      <h3>Project links</h3>
+      <div class="project-link-grid">
+        <a href="${PROJECT_LINKS.webRepo}" target="_blank" rel="noreferrer" class="project-link">
+          <span class="project-link-icon" aria-hidden="true">${githubIcon()}</span>
+          <span>
+            <strong>Web app source</strong>
+            <small>Static browser deployment</small>
+          </span>
+        </a>
+
+        <a href="${PROJECT_LINKS.trainingRepo}" target="_blank" rel="noreferrer" class="project-link">
+          <span class="project-link-icon" aria-hidden="true">${githubIcon()}</span>
+          <span>
+            <strong>Training source</strong>
+            <small>Model training and export pipeline</small>
+          </span>
+        </a>
+
+        <a href="${PROJECT_LINKS.githubProfile}" target="_blank" rel="noreferrer" class="project-link">
+          <span class="project-link-icon" aria-hidden="true">${githubIcon()}</span>
+          <span>
+            <strong>More projects</strong>
+            <small>GitHub portfolio</small>
+          </span>
+        </a>
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 
+function githubIcon() {
+  return `
+    <svg viewBox="0 0 24 24" width="18" height="18" role="img" focusable="false">
+      <path fill="currentColor" d="M12 .5A12 12 0 0 0 8.2 23.9c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.4-4-1.4-.5-1.3-1.2-1.6-1.2-1.6-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1.3 2.6 3.4 1.9.1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.1 6.4 18.1 6.7 18.1 6.7c.6 1.6.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/>
+    </svg>
+  `;
+}
+
+function emailIcon() {
+  return `
+    <svg viewBox="0 0 24 24" width="18" height="18" role="img" focusable="false">
+      <path fill="currentColor" d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 2v.3l8 5.1 8-5.1V7H4Zm0 10h16V9.7l-7.5 4.8a1 1 0 0 1-1 0L4 9.7V17Z"/>
+    </svg>
+  `;
+}
   function renderDebug() {
     if (!state.debug) return "";
     return `

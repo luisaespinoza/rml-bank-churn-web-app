@@ -23,6 +23,12 @@ export const ORT_WASM_FALLBACK_PATHS = [
   `${APP_BASE_URL}ort-wasm/`
 ];
 
+export const PROJECT_LINKS = {
+  webRepo: "https://github.com/luisaespinoza/rml-bank-churn-web-app",
+  trainingRepo: "https://github.com/luisaespinoza/rml-bank-churn-training",
+  githubProfile: "https://github.com/luisaespinoza",
+  contactEmail: "YOUR_EMAIL_HERE"
+};
 export const REQUIRED_DEPLOYMENT_FILES = [
   {
     label: "ONNX model",
